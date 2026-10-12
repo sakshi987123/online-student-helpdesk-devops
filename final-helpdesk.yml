@@ -1,0 +1,34 @@
+---
+- name: Configure and verify Student Helpdesk server
+  hosts: helpdesk
+  gather_facts: true
+
+  tasks:
+    - name: Display server hostname
+      ansible.builtin.debug:
+        msg: "Managed server: {{ ansible_facts['hostname'] }}"
+
+    - name: Verify Python is installed
+      ansible.builtin.command: python3 --version
+      register: python_version
+      changed_when: false
+
+    - name: Display Python version
+      ansible.builtin.debug:
+        msg: "{{ python_version.stdout }}"
+
+    - name: Verify SSH service is active
+      ansible.builtin.command: systemctl is-active ssh
+      register: ssh_status
+      changed_when: false
+      failed_when: ssh_status.stdout != "active"
+
+    - name: Display SSH status
+      ansible.builtin.debug:
+        msg: "SSH status: {{ ssh_status.stdout }}"
+
+    - name: Create deployment verification marker
+      ansible.builtin.copy:
+        content: "Online Student Helpdesk verified by Ansible.\n"
+        dest: /home/sakshi/helpdesk-deployment.txt
+        mode: "0644"
